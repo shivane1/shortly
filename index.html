@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shortly 🔗 | Smarter URL Shortener</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="bg-overlay">
+    <div class="card">
+      <h1 class="title">Shortly <span>🔗</span></h1>
+      <p class="subtitle">Transform long, messy URLs into clean, shareable links in seconds 🚀</p>
+
+      <form id="urlForm" autocomplete="off">
+        <input type="text" id="urlInput" name="url" placeholder="Paste your long URL here..." required>
+        <button type="submit" class="btn-gradient">Shorten</button>
+      </form>
+
+      <div id="result" class="result-box hidden">
+        <p class="label">Short URL:</p>
+        <a id="shortUrl" href="#" target="_blank" class="short-link"></a>
+        <button id="copyBtn" class="btn-copy">Copy</button>
+        <p class="status" id="statusText"></p>
+      </div>
+    </div>
+
+    <footer>
+      <p>✨ Made with ❤️ by <strong>Shivane Kapoor</strong> using Flask & SQLite ✨</p>
+    </footer>
+  </div>
+
+  <script>
+    const form = document.getElementById('urlForm');
+    const resultBox = document.getElementById('result');
+    const shortUrlElement = document.getElementById('shortUrl');
+    const copyBtn = document.getElementById('copyBtn');
+    const statusText = document.getElementById('statusText');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = document.getElementById('urlInput').value.trim();
+
+      if (!url) return;
+
+      const res = await fetch('/shorten', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ url })
+      });
+
+      const data = await res.json();
+      if (data.short_url) {
+        shortUrlElement.href = data.short_url;
+        shortUrlElement.textContent = data.short_url;
+        resultBox.classList.remove('hidden');
+        statusText.textContent = data.cached ? "⚡ Cached from memory" : "🔥 New short link created";
+      } else {
+        statusText.textContent = "❌ Error: " + data.error;
+      }
+    });
+
+    copyBtn.addEventListener('click', () => {
+      const text = shortUrlElement.textContent;
+      navigator.clipboard.writeText(text);
+      copyBtn.textContent = "Copied!";
+      copyBtn.classList.add("copied");
+      setTimeout(() => {
+        copyBtn.textContent = "Copy";
+        copyBtn.classList.remove("copied");
+      }, 2000);
+    });
+  </script>
+</body>
+</html>
